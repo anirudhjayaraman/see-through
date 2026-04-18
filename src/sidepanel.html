@@ -10,53 +10,55 @@
   <div class="app-container">
     <header>
       <div class="header-main">
-        <h1>See Through the Hype</h1>
+        <div class="logo-container">
+          <img src="../icons/icon128.png" alt="Logo" class="app-logo">
+          <h1>See Through the Hype</h1>
+        </div>
         <button id="open-settings-btn" class="icon-only-btn" title="Settings">⚙️</button>
       </div>
-      <p class="subtitle">Assistant critical reader</p>
+      <p class="subtitle">Critical reading assistant</p>
     </header>
 
     <main id="main-content">
-      <!-- Settings Section (Visible by default, hidden by JS if key exists) -->
+      <!-- Settings Section -->
       <section id="settings-section">
-        <h3>Setup Required</h3>
-        <p>Please enter your Gemini API Key to start analyzing.</p>
+        <h3>Connect Gemini</h3>
+        <p class="subtitle">Enter your details to begin analysis.</p>
         <div class="input-group">
           <label for="api-key-input">Gemini API Key</label>
-          <input type="password" id="api-key-input" placeholder="Enter Gemini API Key">
+          <input type="password" id="api-key-input" placeholder="Paste key here...">
           
-          <label for="model-name-input">Model Name</label>
+          <label for="model-name-input">Model Engine</label>
           <input type="text" id="model-name-input" value="gemini-1.5-flash-latest">
           
-          <button id="save-settings" class="primary-btn">Save Settings</button>
+          <button id="save-settings" class="primary-btn">Initialize Assistant</button>
           
-          <hr>
-          <p class="help-text">Getting a "model not found" error? Click below to see which models your key can access.</p>
-          <button id="list-models-btn" class="secondary-btn" style="width: 100%;">Check Available Models</button>
-          <div id="models-list-display" class="hidden" style="font-size: 0.75rem; margin-top: 8px; max-height: 100px; overflow-y: auto; background: #eee; padding: 4px; border-radius: 4px;"></div>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+          <p class="help-text" style="font-size: 0.7rem; color: var(--text-muted);">Trouble connecting? Check your available models.</p>
+          <button id="list-models-btn" class="secondary-btn" style="width: 100%;">Refresh Model List</button>
+          <div id="models-list-display" class="hidden" style="margin-top: 12px;"></div>
         </div>
-        <p class="help-text">You can get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.</p>
       </section>
 
       <!-- Analysis Controls -->
       <section id="controls-section" class="hidden">
         <button id="analyze-btn" class="primary-btn">
-          <span class="icon">🔍</span> Analyze This Page
+          <span>🔍</span> Analyze Page Content
         </button>
-        <p id="selection-hint" class="hint-text hidden">Tip: Highlight text to analyze selection only.</p>
+        <p id="selection-hint" class="disclaimer" style="margin-top: 8px; font-size: 0.65rem;">Highlight text to analyze only the selection.</p>
       </section>
 
       <!-- Loading State -->
       <section id="loading-section" class="hidden">
         <div class="loader"></div>
-        <p>Analyzing for hype vs. substance...</p>
+        <p style="text-align: center; font-weight: 600; font-size: 0.85rem;">Decoding context...</p>
       </section>
 
       <!-- Error State -->
       <section id="error-section" class="hidden">
-        <div class="error-box">
-          <p id="error-message"></p>
-          <button id="retry-btn" class="secondary-btn">Retry</button>
+        <div class="error-box" style="padding: 20px; text-align: center; background: #fff1f2; border-radius: 12px; border: 1px solid #fecaca;">
+          <p id="error-message" style="font-size: 0.8rem; color: #9f1239; margin-bottom: 16px;"></p>
+          <button id="retry-btn" class="secondary-btn">Retry Scan</button>
         </div>
       </section>
 
@@ -64,19 +66,16 @@
       <section id="results-section" class="hidden">
         <div id="result-header">
           <div class="page-info">
-            <h2 id="result-title"></h2>
             <span id="result-page-type" class="badge"></span>
+            <h2 id="result-title"></h2>
           </div>
-          <div class="score-container">
-            <div id="score-ring" class="score-ring">
-              <span id="score-value">0</span>
-            </div>
-            <p>Credibility Score</p>
+          <div class="score-ring" id="score-ring">
+            <span id="score-value"></span>
           </div>
         </div>
 
-        <div id="verdict-banner" class="">
-          <strong>Verdict:</strong> <span id="verdict-text"></span>
+        <div id="verdict-banner">
+          <span id="verdict-text"></span>
         </div>
 
         <div class="detail-sections">
@@ -86,22 +85,22 @@
           </details>
 
           <details>
-            <summary>Evidence Present</summary>
+            <summary>Evidence Detected</summary>
             <ul id="content-evidence" class="detail-content"></ul>
           </details>
 
           <details>
-            <summary>Missing Proof</summary>
+            <summary>Critical Gaps</summary>
             <ul id="content-missing" class="detail-content"></ul>
           </details>
 
           <details>
-            <summary>Detected Buzzwords</summary>
+            <summary>Buzzword Decoder</summary>
             <div id="content-buzzwords" class="detail-content"></div>
           </details>
 
           <details>
-            <summary>Hidden Assumptions</summary>
+            <summary>Logic Assumptions</summary>
             <ul id="content-assumptions" class="detail-content"></ul>
           </details>
 
@@ -111,20 +110,25 @@
           </details>
         </div>
 
-        <div id="report-footer">
-          <p id="one-line-take" class="italic"></p>
+        <div class="score-breakdown">
+            <strong>How this is calculated:</strong>
+            <p style="margin: 4px 0 0 0;">Credibility is scored on a scale of 0-100 based on claim specificity, presence of primary evidence, falsifiability, and measurable outcomes.</p>
+        </div>
+
+        <div id="report-footer" style="margin-top: 24px;">
+          <p id="one-line-take" style="font-style: italic; font-weight: 500; font-size: 0.85rem; border-left: 2px solid var(--primary); padding-left: 12px; margin-bottom: 20px;"></p>
           <div class="action-buttons">
-            <button id="copy-btn" class="icon-btn" title="Copy Report">📋 Copy</button>
-            <button id="download-btn" class="icon-btn" title="Download JSON">💾 JSON</button>
-            <button id="reanalyze-btn" class="icon-btn" title="Re-analyze">🔄 Re-scan</button>
+            <button id="copy-btn" class="icon-btn">Copy Report</button>
+            <button id="download-btn" class="icon-btn">Export JSON</button>
+            <button id="reanalyze-btn" class="icon-btn">Re-scan</button>
           </div>
         </div>
       </section>
 
       <!-- History Section -->
-      <section id="history-section">
-        <hr>
-        <h3>Recent History</h3>
+      <section id="history-section" class="hidden">
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 32px 0;">
+        <h3>Previous Scans</h3>
         <ul id="history-list">
           <li class="empty-msg">No history yet.</li>
         </ul>
@@ -132,7 +136,7 @@
     </main>
 
     <footer>
-      <p class="disclaimer">Assistive tool, not a factual verifier. Models can hallucinate.</p>
+      <p class="disclaimer">Assistance only. This tool does not verify facts. Models may hallucinate.</p>
     </footer>
   </div>
 
