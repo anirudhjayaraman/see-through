@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>See Through the Hype</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="header-main">
+        <h1>See Through the Hype</h1>
+        <button id="open-settings-btn" class="icon-only-btn" title="Settings">⚙️</button>
+      </div>
+      <p class="subtitle">Assistant critical reader</p>
+    </header>
+
+    <main id="main-content">
+      <!-- Settings Section (Visible by default, hidden by JS if key exists) -->
+      <section id="settings-section">
+        <h3>Setup Required</h3>
+        <p>Please enter your Gemini API Key to start analyzing.</p>
+        <div class="input-group">
+          <label for="api-key-input">Gemini API Key</label>
+          <input type="password" id="api-key-input" placeholder="Enter Gemini API Key">
+          
+          <label for="model-name-input">Model Name</label>
+          <input type="text" id="model-name-input" value="gemini-1.5-flash-latest">
+          
+          <button id="save-settings" class="primary-btn">Save Settings</button>
+          
+          <hr>
+          <p class="help-text">Getting a "model not found" error? Click below to see which models your key can access.</p>
+          <button id="list-models-btn" class="secondary-btn" style="width: 100%;">Check Available Models</button>
+          <div id="models-list-display" class="hidden" style="font-size: 0.75rem; margin-top: 8px; max-height: 100px; overflow-y: auto; background: #eee; padding: 4px; border-radius: 4px;"></div>
+        </div>
+        <p class="help-text">You can get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.</p>
+      </section>
+
+      <!-- Analysis Controls -->
+      <section id="controls-section" class="hidden">
+        <button id="analyze-btn" class="primary-btn">
+          <span class="icon">🔍</span> Analyze This Page
+        </button>
+        <p id="selection-hint" class="hint-text hidden">Tip: Highlight text to analyze selection only.</p>
+      </section>
+
+      <!-- Loading State -->
+      <section id="loading-section" class="hidden">
+        <div class="loader"></div>
+        <p>Analyzing for hype vs. substance...</p>
+      </section>
+
+      <!-- Error State -->
+      <section id="error-section" class="hidden">
+        <div class="error-box">
+          <p id="error-message"></p>
+          <button id="retry-btn" class="secondary-btn">Retry</button>
+        </div>
+      </section>
+
+      <!-- Results Display -->
+      <section id="results-section" class="hidden">
+        <div id="result-header">
+          <div class="page-info">
+            <h2 id="result-title"></h2>
+            <span id="result-page-type" class="badge"></span>
+          </div>
+          <div class="score-container">
+            <div id="score-ring" class="score-ring">
+              <span id="score-value">0</span>
+            </div>
+            <p>Credibility Score</p>
+          </div>
+        </div>
+
+        <div id="verdict-banner" class="">
+          <strong>Verdict:</strong> <span id="verdict-text"></span>
+        </div>
+
+        <div class="detail-sections">
+          <details open>
+            <summary>Core Claim</summary>
+            <div id="content-core-claim" class="detail-content"></div>
+          </details>
+
+          <details>
+            <summary>Evidence Present</summary>
+            <ul id="content-evidence" class="detail-content"></ul>
+          </details>
+
+          <details>
+            <summary>Missing Proof</summary>
+            <ul id="content-missing" class="detail-content"></ul>
+          </details>
+
+          <details>
+            <summary>Detected Buzzwords</summary>
+            <div id="content-buzzwords" class="detail-content"></div>
+          </details>
+
+          <details>
+            <summary>Hidden Assumptions</summary>
+            <ul id="content-assumptions" class="detail-content"></ul>
+          </details>
+
+          <details>
+            <summary>Skeptical Questions</summary>
+            <ul id="content-questions" class="detail-content"></ul>
+          </details>
+        </div>
+
+        <div id="report-footer">
+          <p id="one-line-take" class="italic"></p>
+          <div class="action-buttons">
+            <button id="copy-btn" class="icon-btn" title="Copy Report">📋 Copy</button>
+            <button id="download-btn" class="icon-btn" title="Download JSON">💾 JSON</button>
+            <button id="reanalyze-btn" class="icon-btn" title="Re-analyze">🔄 Re-scan</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- History Section -->
+      <section id="history-section">
+        <hr>
+        <h3>Recent History</h3>
+        <ul id="history-list">
+          <li class="empty-msg">No history yet.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p class="disclaimer">Assistive tool, not a factual verifier. Models can hallucinate.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
