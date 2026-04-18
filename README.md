@@ -19,7 +19,13 @@ A premium Chrome Extension designed to help you separate real substance from mar
 1.  Open the **Side Panel** by clicking the eye icon in your browser toolbar.
 2.  Go to **Settings** (gear icon).
 3.  Enter your **Gemini API Key** (from [Google AI Studio](https://aistudio.google.com/app/apikey)).
-4.  *Optional*: Enter `DEMO` in the API Key field to try the extension without a real key using the included mock samples.
+4.  *Optional*: Enter `DEMO` in the API Key field to try the extension without a real key.
+    
+## Testing with Demo Mode
+Don't have an API key yet? You can still test the extension's high-fidelity analysis by:
+1. Entering `DEMO` as your API key in Settings.
+2. Opening the `test/mock_pages.html` file in your browser.
+3. Clicking **Analyze Page Content** on any of the sample sections.
 
 ---
 Built for skeptics, by skeptics. 🚀
