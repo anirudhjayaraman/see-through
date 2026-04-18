@@ -1,0 +1,21 @@
+# Chrome Extension local data
+.DS_Store
+*.local
+
+# Node / Build tools
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Gemini API specific
+history.json
+keys.txt
+config.json
