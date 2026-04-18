@@ -50,9 +50,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentModel = modelName;
       elements.modelNameInput.value = modelName;
     }
+    if (apiKey) {
+      elements.apiKeyInput.value = apiKey;
+    }
     
     // If key is missing or suspiciously short, show settings
-    if (!apiKey || apiKey.trim().length < 10) {
+    // Reduced threshold to 4 to allow "DEMO" keyword
+    if (!apiKey || apiKey.trim().length < 4) {
       showSection('settings');
     } else {
       showSection('controls');
@@ -67,7 +71,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Event Listeners
 const settingsBtn = document.getElementById('open-settings-btn');
 if (settingsBtn) {
-  settingsBtn.addEventListener('click', () => showSection('settings'));
+  settingsBtn.addEventListener('click', () => {
+    if (elements.settingsSection.classList.contains('hidden')) {
+      showSection('settings');
+    } else {
+      showSection('controls');
+      loadHistory();
+    }
+  });
 }
 
 const listModelsBtn = document.getElementById('list-models-btn');
@@ -76,8 +87,8 @@ const modelsListDisplay = document.getElementById('models-list-display');
 if (listModelsBtn) {
   listModelsBtn.addEventListener('click', async () => {
     const key = elements.apiKeyInput.value.trim();
-    if (!key) {
-      alert('Please enter your API key first.');
+    if (!key || key.toUpperCase() === 'DEMO') {
+      alert('Please enter a real API key to check models.');
       return;
     }
     
@@ -103,7 +114,7 @@ if (listModelsBtn) {
       modelsListDisplay.textContent = `Error: ${err.message}`;
       modelsListDisplay.classList.remove('hidden');
     } finally {
-      listModelsBtn.textContent = 'Check Available Models';
+      listModelsBtn.textContent = 'Refresh Model List';
     }
   });
 }
@@ -157,16 +168,34 @@ async function performAnalysis() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) throw new Error('No active tab found.');
 
-    const pageData = await chrome.tabs.sendMessage(tab.id, { action: 'extract_content' });
-    if (!pageData || !pageData.content) {
-      throw new Error('Could not extract content from this page. Try scrolling down or selecting text.');
+    // Inject content script manually if it's not a pre-declared site
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['src/contentScript.js']
+      });
+    } catch (e) {
+      // Normal for pre-declared sites or sites where scripting isn't allowed
     }
 
-    // 2. Call Gemini
-    const userPrompt = generateUserPrompt(pageData);
-    const result = await analyzeWithGemini(apiKey, currentModel, SYSTEM_PROMPT, userPrompt);
+    const pageData = await chrome.tabs.sendMessage(tab.id, { action: 'extract_content' });
+    if (!pageData || !pageData.content) {
+      throw new Error('Could not extract content. Try scrolling down or selecting text.');
+    }
+
+    let result;
+    // Check for Demo Mode: Keyword "DEMO"
+    if (apiKey.toUpperCase() === 'DEMO') {
+      const { MOCK_RESPONSES } = await import('../test/mock_responses.js');
+      result = MOCK_RESPONSES[pageData.type] || MOCK_RESPONSES.marketing_page;
+      await new Promise(r => setTimeout(r, 1200));
+    } else {
+      // 2. Call Gemini
+      const userPrompt = generateUserPrompt(pageData);
+      result = await analyzeWithGemini(apiKey, currentModel, SYSTEM_PROMPT, userPrompt);
+    }
     
-    // 3. Save and Display
+    // 3. Display
     currentAnalysis = result;
     await saveToHistory(result);
     displayResults(result);
@@ -177,7 +206,7 @@ async function performAnalysis() {
     console.error('Analysis error:', err);
     let message = err.message;
     if (message.includes('Could not establish connection')) {
-      message = 'Please refresh the webpage (e.g., X/Twitter) and try again. The extension needs to re-connect after being updated.';
+      message = 'Please refresh the webpage and try again to re-connect the detector.';
     }
     elements.errorMessage.textContent = message;
     showSection('error');
@@ -209,13 +238,16 @@ function displayResults(data) {
   renderList(elements.contentQuestions, data.skeptical_questions);
   
   // Buzzwords special rendering
-  elements.contentBuzzwords.innerHTML = data.buzzwords_detected.map(b => `
-    <div class="buzzword-item">
-      <div class="buzzword-term">${b.term}</div>
-      <div class="buzzword-meaning">${b.plain_english_meaning}</div>
-      <div class="buzzword-why">${b.why_it_is_vague}</div>
-    </div>
-  `).join('');
+  if (!data.buzzwords_detected || data.buzzwords_detected.length === 0) {
+    elements.contentBuzzwords.innerHTML = '<ul><li>None detected.</li></ul>';
+  } else {
+    elements.contentBuzzwords.innerHTML = '<ul>' + data.buzzwords_detected.map(b => `
+      <li class="buzzword-item" style="margin-bottom: 8px;">
+        <strong>${b.term}</strong>: ${b.plain_english_meaning}
+        <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 2px;">${b.why_it_is_vague}</div>
+      </li>
+    `).join('') + '</ul>';
+  }
 }
 
 /**

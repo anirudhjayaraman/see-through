@@ -20,7 +20,11 @@ You are an expert critical reader and "hype detector". Your goal is to analyze w
 - "mostly hype": Little to no evidence, extreme reliance on buzzwords and emotional appeals.
 
 ### Response Format:
-You MUST return ONLY a valid JSON object matching the provided schema. No markdown, no conversational filler.
+You MUST return ONLY a valid JSON object matching the provided schema. 
+- Keep descriptions concise.
+- Limit each list (evidence, missing, questions, etc.) to 3-5 of the most important points to avoid truncation.
+- When listing 'missing_evidence' (Critical Gaps), explicitly frame them as logical flaws, leaps in logic, or missing proof (e.g., "Fails to provide context on...", "No proof showing...", "Logical leap assuming...").
+- No markdown, no conversational filler.
 `;
 
 export function generateUserPrompt(pageContent) {
