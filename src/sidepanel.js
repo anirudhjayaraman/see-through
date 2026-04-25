@@ -238,15 +238,19 @@ async function performAnalysis() {
 function displayResults(data) {
   elements.resultTitle.textContent = data.title_or_post_hook || 'Page Analysis';
   elements.resultPageType.textContent = data.page_type.replace('_', ' ');
-  elements.scoreValue.textContent = data.credibility_score;
-  elements.verdictText.textContent = data.verdict;
+  // Derive verdict deterministically from score (LLM verdict is unreliable)
+  const score = data.credibility_score;
+  const verdict = score >= 65 ? 'mostly substance' : score >= 35 ? 'mixed' : 'mostly hype';
+
+  elements.scoreValue.textContent = score;
+  elements.verdictText.textContent = verdict;
   elements.oneLineTake.textContent = data.one_line_take;
   
   // Score styling
-  elements.scoreRing.style.borderColor = getScoreColor(data.credibility_score);
+  elements.scoreRing.style.borderColor = getScoreColor(score);
   
   // Verdict styling
-  elements.verdictBanner.className = `verdict-${data.verdict.replace(' ', '-')}`;
+  elements.verdictBanner.className = `verdict-${verdict.replace(' ', '-')}`;
   
   // AI Metrics
   if (data.ai_detection_metrics) {
