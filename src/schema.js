@@ -26,6 +26,15 @@ export const analysisSchema = {
     },
     skeptical_questions: { type: "array", items: { type: "string" } },
     credibility_score: { type: "number", minimum: 0, maximum: 100 },
+    ai_detection_metrics: {
+      type: "object",
+      properties: {
+        sentence_variance: { type: "number" },
+        burstiness: { type: "number" },
+        ai_probability_percent: { type: "number" }
+      },
+      required: ["sentence_variance", "burstiness", "ai_probability_percent"]
+    },
     verdict: { 
       type: "string", 
       enum: ["mostly substance", "mixed", "mostly hype"] 
@@ -36,6 +45,6 @@ export const analysisSchema = {
     "page_type", "title_or_post_hook", "core_claim", "target_audience", 
     "evidence_present", "missing_evidence", "hidden_assumptions", 
     "buzzwords_detected", "skeptical_questions", "credibility_score", 
-    "verdict", "one_line_take"
+    "ai_detection_metrics", "verdict", "one_line_take"
   ]
 };

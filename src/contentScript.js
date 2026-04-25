@@ -1,7 +1,7 @@
-// contentScript.js
+// contentScript.js - Improved Extraction for Demo Quality
 
 /**
- * Extracts visible text from the page, avoiding noise like menus and footers.
+ * Extracts visible text from the page, prioritizing content and avoiding UI noise.
  */
 function extractPageContent() {
   const selection = window.getSelection().toString();
@@ -18,38 +18,58 @@ function extractPageContent() {
 
   if (hostname.includes('linkedin.com')) {
     type = 'linkedin_post';
-    // Attempt to find LinkedIn post content
-    const postElements = document.querySelectorAll('.feed-shared-update-v2__description, .feed-shared-text');
-    if (postElements.length > 0) {
-      text = Array.from(postElements).map(el => el.innerText).join('\n\n');
+    // Capture only the first prominent post description to avoid overwhelming the AI
+    const posts = document.querySelectorAll('.feed-shared-update-v2__description-wrapper, .feed-shared-text, .update-components-text');
+    if (posts.length > 0) {
+      // Prioritize the first one clearly visible
+      text = posts[0].innerText.trim();
     }
   } else if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
     type = 'x_post';
-    // Attempt to find X/Twitter tweet content
-    const tweetElements = document.querySelectorAll('[data-testid="tweetText"]');
-    if (tweetElements.length > 0) {
-      text = Array.from(tweetElements).map(el => el.innerText).join('\n\n');
+    // Capture only the primary tweet
+    const tweets = document.querySelectorAll('[data-testid="tweetText"]');
+    if (tweets.length > 0) {
+      text = tweets[0].innerText.trim();
     }
   }
 
-  // Fallback to generic extraction if site-specific fails or isn't applicable
+  // Fallback / Generic marketing page extraction
   if (!text) {
-    // Basic heuristics: headlines, paragraphs, etc.
-    const mainContent = document.querySelector('main, article, #content, .content');
-    const root = mainContent || document.body;
+    // Focus on main content area if available
+    const mainArea = document.querySelector('main, article, [role="main"], .main-content, #main-content');
+    const root = mainArea || document.body;
+
+    const clone = root.cloneNode(true);
     
-    // Clean up unwanted elements before extracting
-    const clones = root.cloneNode(true);
-    const selectorsToRemove = 'nav, footer, script, style, .sidebar, .ads, .menu, .nav, footer, #footer, .cookie-banner';
-    clones.querySelectorAll(selectorsToRemove).forEach(el => el.remove());
+    // Scour common UI junk
+    const noiseSelectors = [
+      'nav', 'footer', 'header', 'aside', '.sidebar', '.menu', '.nav', '.footer',
+      'script', 'style', 'iframe', 'noscript', 
+      '.ads', '.ad-unit', '.social-share', '.cookie-banner', '.promo',
+      '.related-posts', '.comments-section', '#comments'
+    ];
     
-    text = clones.innerText;
+    noiseSelectors.forEach(selector => {
+      clone.querySelectorAll(selector).forEach(el => el.remove());
+    });
+
+    // Heuristically find blocks of text (paragraphs, headings)
+    const blocks = clone.querySelectorAll('p, h1, h2, h3, h4, li');
+    text = Array.from(blocks)
+      .map(b => b.innerText.trim())
+      .filter(t => t.length > 20) // Filter out tiny snippets (buttons, dates, etc)
+      .join('\n\n');
   }
 
-  // Limit text length to avoid token issues (truncating to ~10k chars)
-  const maxLength = 10000;
+  // Final fallback to just innerText if everything else failed
+  if (!text.trim()) {
+    text = document.body.innerText;
+  }
+
+  // Smart truncation: keep the first 12k characters
+  const maxLength = 12000;
   if (text.length > maxLength) {
-    text = text.substring(0, maxLength) + '... [Content truncated]';
+    text = text.substring(0, maxLength) + '\n\n[...Content truncated for analysis performance...]';
   }
 
   return {
@@ -60,11 +80,14 @@ function extractPageContent() {
   };
 }
 
-// Listen for messages from the side panel
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'extract_content') {
-    const data = extractPageContent();
-    sendResponse(data);
-  }
-  return true;
-});
+// Ensure the listener is only added once
+if (!window.hypeDetectorBound) {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'extract_content') {
+      const data = extractPageContent();
+      sendResponse(data);
+    }
+    return true;
+  });
+  window.hypeDetectorBound = true;
+}

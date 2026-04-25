@@ -10,6 +10,12 @@ const elements = {
   errorSection: document.getElementById('error-section'),
   resultsSection: document.getElementById('results-section'),
   historySection: document.getElementById('history-section'),
+  reasoningSection: document.getElementById('reasoning-section'),
+  reasoningChain: document.getElementById('reasoning-chain'),
+  
+  aiPercentValue: document.getElementById('ai-percent-value'),
+  varianceValue: document.getElementById('variance-value'),
+  burstinessValue: document.getElementById('burstiness-value'),
   
   apiKeyInput: document.getElementById('api-key-input'),
   modelNameInput: document.getElementById('model-name-input'),
@@ -190,9 +196,22 @@ async function performAnalysis() {
       result = MOCK_RESPONSES[pageData.type] || MOCK_RESPONSES.marketing_page;
       await new Promise(r => setTimeout(r, 1200));
     } else {
-      // 2. Call Gemini
+    // 2. Call Gemini
       const userPrompt = generateUserPrompt(pageData);
-      result = await analyzeWithGemini(apiKey, currentModel, SYSTEM_PROMPT, userPrompt);
+      
+      // Setup reasoning UI
+      elements.reasoningChain.innerHTML = '';
+      showSection('reasoning'); // Show reasoning section during loading
+      
+      const onReasoningStep = (stepText) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'reasoning-step';
+        stepEl.textContent = stepText;
+        elements.reasoningChain.appendChild(stepEl);
+        elements.reasoningChain.scrollTop = elements.reasoningChain.scrollHeight;
+      };
+
+      result = await analyzeWithGemini(apiKey, currentModel, SYSTEM_PROMPT, userPrompt, onReasoningStep);
     }
     
     // 3. Display
@@ -229,6 +248,27 @@ function displayResults(data) {
   // Verdict styling
   elements.verdictBanner.className = `verdict-${data.verdict.replace(' ', '-')}`;
   
+  // AI Metrics
+  if (data.ai_detection_metrics) {
+    elements.aiPercentValue.textContent = `${data.ai_detection_metrics.ai_probability_percent}%`;
+    elements.varianceValue.textContent = data.ai_detection_metrics.sentence_variance;
+    elements.burstinessValue.textContent = data.ai_detection_metrics.burstiness;
+    
+    // Color coding AI percent
+    const aiProb = data.ai_detection_metrics.ai_probability_percent;
+    if (aiProb >= 70) {
+      elements.aiPercentValue.style.color = 'var(--error)';
+    } else if (aiProb >= 40) {
+      elements.aiPercentValue.style.color = 'var(--warning)';
+    } else {
+      elements.aiPercentValue.style.color = 'var(--success)';
+    }
+  } else {
+    elements.aiPercentValue.textContent = 'N/A';
+    elements.varianceValue.textContent = 'N/A';
+    elements.burstinessValue.textContent = 'N/A';
+  }
+  
   // Content sections
   elements.contentCoreClaim.textContent = data.core_claim;
   
@@ -259,14 +299,23 @@ function showSection(section) {
   elements.loadingSection.classList.add('hidden');
   elements.errorSection.classList.add('hidden');
   elements.resultsSection.classList.add('hidden');
+  elements.reasoningSection.classList.add('hidden');
   
   if (section === 'settings') elements.settingsSection.classList.remove('hidden');
   if (section === 'controls') elements.controlsSection.classList.remove('hidden');
   if (section === 'loading') elements.loadingSection.classList.remove('hidden');
-  if (section === 'error') elements.errorSection.classList.remove('hidden');
+  if (section === 'reasoning') {
+    elements.loadingSection.classList.remove('hidden');
+    elements.reasoningSection.classList.remove('hidden');
+  }
+  if (section === 'error') {
+    elements.errorSection.classList.remove('hidden');
+    elements.reasoningSection.classList.remove('hidden');
+  }
   if (section === 'results') {
     elements.resultsSection.classList.remove('hidden');
     elements.controlsSection.classList.remove('hidden'); // Keep re-analyze visible
+    elements.reasoningSection.classList.remove('hidden'); // Keep reasoning visible for context
   }
 }
 

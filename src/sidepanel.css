@@ -350,3 +350,134 @@ label {
   margin-bottom: 4px;
   color: var(--text-muted);
 }
+
+/* Reasoning Chain */
+.reasoning-chain-container {
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #334155;
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reasoning-step {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-left: 2px solid var(--primary);
+  word-wrap: break-word;
+}
+
+/* AI Detection Metrics Dashboard */
+.metrics-dashboard {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.metric-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.one-line-take {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary);
+  padding: 6px 12px;
+  margin: 10px 0 16px 0;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 0 6px 6px 0;
+}
+
+/* Verdict Legend */
+.verdict-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 8px 0;
+}
+
+.verdict-legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.verdict-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.dot-substance { background: #22c55e; }
+.dot-mixed     { background: #f59e0b; }
+.dot-hype      { background: #ef4444; }
+
+.verdict-legend-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+}
+
+.verdict-legend-range {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.verdict-legend-desc {
+  font-size: 0.70rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.score-formula {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+  margin: 4px 0 0 0;
+  font-style: italic;
+}
