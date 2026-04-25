@@ -161,7 +161,9 @@ function detectAILanguage(text) {
   
   // 4. Variance (Burstiness)
   const variance = counts.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / counts.length;
-  
+  const stdDev = Math.sqrt(variance);
+  const burstiness = mean > 0 ? (stdDev / mean) * 100 : 0;
+
   // Human text typically has high variance (burstiness). AI has low variance.
   // Finer buckets at the high end prevent all human posts from collapsing to ~37%.
   let varianceScore;
@@ -215,7 +217,7 @@ function detectAILanguage(text) {
 
   return {
     sentence_variance: parseFloat(variance.toFixed(2)),
-    burstiness: parseFloat(variance.toFixed(2)),
+    burstiness: parseFloat(burstiness.toFixed(2)),
     ai_probability_percent: finalScore,
     confidence: confidence,
     factors: factors,
