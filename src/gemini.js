@@ -153,6 +153,27 @@ export async function analyzeWithGemini(apiKey, modelName, systemPrompt, userPro
       if (onReasoningStep) {
         onReasoningStep('Agent has completed analysis.');
       }
+
+      // ── LLM CONVERSATION LOG ──────────────────────────────────────────
+      // Copy this from DevTools Console for your assignment submission.
+      console.group('%c🤖 See Through the Hype — Full LLM Conversation Log', 'color: #6366f1; font-weight: bold; font-size: 14px;');
+      contents.forEach((turn, i) => {
+        const role = turn.role?.toUpperCase() || 'UNKNOWN';
+        const emoji = role === 'USER' ? '👤' : role === 'MODEL' ? '🤖' : '🔧';
+        const part = turn.parts?.[0];
+        if (part?.text) {
+          console.log(`%c${emoji} Turn ${i + 1} [${role}]`, 'font-weight:bold; color:#94a3b8', '\n' + part.text.substring(0, 500));
+        } else if (part?.functionCall) {
+          console.log(`%c${emoji} Turn ${i + 1} [${role}] → Tool Call: ${part.functionCall.name}`, 'font-weight:bold; color:#f59e0b', '\nArgs:', JSON.stringify(part.functionCall.args, null, 2).substring(0, 300));
+        } else if (part?.functionResponse) {
+          console.log(`%c${emoji} Turn ${i + 1} [${role}] → Tool Result: ${part.functionResponse.name}`, 'font-weight:bold; color:#22c55e', '\nResult:', JSON.stringify(part.functionResponse.response, null, 2));
+        }
+      });
+      console.log('%c📋 Full conversation (copy this):', 'font-weight:bold; color:#6366f1');
+      console.log(JSON.stringify(contents, null, 2));
+      console.groupEnd();
+      // ─────────────────────────────────────────────────────────────────
+
       return JSON.parse(resultText);
     } catch (err) {
       console.error('Raw result that failed to parse:', resultText);

@@ -163,13 +163,15 @@ function detectAILanguage(text) {
   const variance = counts.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / counts.length;
   
   // Human text typically has high variance (burstiness). AI has low variance.
-  let varianceScore = 85;
-  if (variance < 5) varianceScore = 85;
-  else if (variance < 10) varianceScore = 70;
-  else if (variance < 20) varianceScore = 55;
-  else if (variance < 35) varianceScore = 40;
-  else if (variance > 50) varianceScore = 25;
-  else varianceScore = 35;
+  // Finer buckets at the high end prevent all human posts from collapsing to ~37%.
+  let varianceScore;
+  if      (variance < 5)   varianceScore = 90; // Very AI-like: robotic uniformity
+  else if (variance < 10)  varianceScore = 75;
+  else if (variance < 20)  varianceScore = 60;
+  else if (variance < 35)  varianceScore = 45;
+  else if (variance < 55)  varianceScore = 30; // Moderately human
+  else if (variance < 100) varianceScore = 18; // Very human / bursty
+  else                     varianceScore = 8;  // Extremely bursty — clearly human
 
   // 5. Run additional detection metrics
   const wordLengthResult = detectWordLengthUniformity(text);
