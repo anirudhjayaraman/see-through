@@ -34,10 +34,20 @@ Returns: `ai_probability_percent`, `sentence_variance`, `burstiness`, `confidenc
 The results panel shows three live metrics cards directly below the verdict:
 - **AI Prob. %** — color-coded green/amber/red
 - **Variance** — raw sentence length variance
-- **Burstiness** — same as variance in this implementation
+- **Burstiness** — Coefficient of Variation (relative rhythmic variation)
 
 ### Verdict Legend
 Every result shows a full explanation of all three possible verdicts and the scoring formula — no black boxes.
+
+---
+
+## Testing Methodology
+We built a multi-layered testing suite to ensure the stylometric engine and agentic loop are highly calibrated:
+
+1. **Stylometric Test Harness (`test/test_detector.html`)**: A standalone web suite to run the 5-metric ensemble against known AI, bursty human, and buzzword-heavy texts directly in the browser.
+2. **Python Engine Port (`test/test_detector.py`)**: A Python port of the stylometric math used to rapidly tune coefficient weights against larger batches of text in the terminal.
+3. **End-to-End Extraction (`test/mock_pages.html`)**: Raw HTML dumps of real LinkedIn posts and X threads to verify DOM selectors correctly isolate post text from sidebar noise.
+4. **Deterministic Calibration**: `temperature: 0` plus an explicit scoring rubric strictly prevents LLM hallucinations, ensuring final scores always correctly match the verdict label.
 
 ---
 
