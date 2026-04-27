@@ -165,13 +165,14 @@ function detectAILanguage(text) {
   const burstiness = mean > 0 ? (stdDev / mean) * 100 : 0;
 
   // Human text typically has high variance (burstiness). AI has low variance.
-  // Finer buckets at the high end prevent all human posts from collapsing to ~37%.
+  // Tighter buckets in the 5-25 range where most AI text clusters.
   let varianceScore;
-  if      (variance < 5)   varianceScore = 90; // Very AI-like: robotic uniformity
-  else if (variance < 10)  varianceScore = 75;
-  else if (variance < 20)  varianceScore = 60;
-  else if (variance < 35)  varianceScore = 45;
-  else if (variance < 55)  varianceScore = 30; // Moderately human
+  if      (variance < 3)   varianceScore = 95; // Robotic uniformity
+  else if (variance < 7)   varianceScore = 88;
+  else if (variance < 12)  varianceScore = 80;
+  else if (variance < 20)  varianceScore = 70;
+  else if (variance < 30)  varianceScore = 55;
+  else if (variance < 50)  varianceScore = 35; // Moderately human
   else if (variance < 100) varianceScore = 18; // Very human / bursty
   else                     varianceScore = 8;  // Extremely bursty — clearly human
 
@@ -183,20 +184,34 @@ function detectAILanguage(text) {
 
   // 6. Weighted ensemble approach
   const weights = {
-    variance: 0.50,
-    wordLength: 0.15,
-    lexical: 0.15,
-    punctuation: 0.05,
-    contextual: 0.15
+    variance: 0.40,
+    wordLength: 0.10,
+    lexical: 0.10,
+    punctuation: 0.10,
+    contextual: 0.30
   };
 
-  const finalScore = Math.round(
+  let finalScore = Math.round(
     (varianceScore * weights.variance) +
     (wordLengthResult.score * weights.wordLength) +
     (lexicalResult.score * weights.lexical) +
     (punctuationResult.score * weights.punctuation) +
     (contextualResult.score * weights.contextual)
   );
+
+  // 7. Correlation bonus: when multiple strong indicators agree, boost confidence
+  const strongAISignals = [
+    varianceScore >= 70,
+    wordLengthResult.score >= 65,
+    contextualResult.signalCount >= 2,
+    lexicalResult.ttr < 0.5,
+  ].filter(Boolean).length;
+
+  if (strongAISignals >= 3) finalScore = Math.min(99, finalScore + 10);
+  else if (strongAISignals >= 2) finalScore = Math.min(99, finalScore + 5);
+
+  // 8. Extreme uniformity override: near-zero variance is virtually impossible for human writing
+  if (varianceScore >= 88) finalScore = Math.max(finalScore, 72);
 
   // Determine confidence based on sample size
   let confidence = 'low';
